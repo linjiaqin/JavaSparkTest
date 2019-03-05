@@ -18,7 +18,7 @@ public class PipeTest {
         String cPath = "file:/home/linjiaqin/sh/hello";
 
         sc.addFile(cPath);
-        JavaRDD<Integer> a = sc.parallelize(Arrays.asList(1,2,3,4,5,6));
+        JavaRDD<Integer> a = sc.parallelize(Arrays.asList(1,2,3,4,5,6));   //这里rdd作为参数输入
         JavaRDD<String> rdd = a.pipe(SparkFiles.get("hello"));
         rdd.collect().forEach(x-> System.out.println(x));
 
