@@ -18,9 +18,11 @@ public class PipeTest {
         String cPath = "file:/home/linjiaqin/sh/hello";
 
         sc.addFile(cPath);
-        JavaRDD<Integer> a = sc.parallelize(Arrays.asList(1,2,3,4,5,6));   //这里rdd作为参数输入
-        JavaRDD<String> rdd = a.pipe(SparkFiles.get("hello"));
-        rdd.collect().forEach(x-> System.out.println(x));
-
+        JavaRDD<Integer> a = sc.parallelize(Arrays.asList(1,2,3,4,5,6,7,9));   //这里rdd作为参数输入
+        JavaRDD<String> rdd = a.pipe(SparkFiles.get("hello"));       //可以看出开的进程数和核数相关,与rdd的个数无关，而且还和cin的接收有关
+        //如果每个c程序只接受一个参数，只会执行核数次而不是将所有的rdd都执行完
+        rdd.collect().forEach(x-> System.out.println("haha"+x));
+        JavaRDD<Integer> b = a.map(x->x+1);
+        b.collect().forEach(x-> System.out.println(x));
     }
 }
