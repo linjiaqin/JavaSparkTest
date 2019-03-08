@@ -8,14 +8,14 @@ import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.codehaus.janino.Java;
 import scala.Tuple2;
 
 import java.util.Arrays;
 import java.util.Iterator;
 
 /*
-这里的粒度是rdd的粒度,DStream的粒度是rdd
+从transform的函数参数看出
+这里的粒度是rdd的粒度,transform函数里DStream的粒度是rdd
  */
 class MyFilter implements Function<JavaRDD<String>,JavaRDD<String>> {
 
@@ -28,10 +28,11 @@ class MyFilter implements Function<JavaRDD<String>,JavaRDD<String>> {
     }
 }
 
+//这里是rdd中每个元素的粒度，无论是rdd的map还是dstream，这个函数都是这个粒度
 class MyFilters implements FlatMapFunction<String,String> {
     @Override
     public Iterator<String> call(String s) throws Exception {
-        String[] split = s.split("\\s+");
+        String[] split = s.split(" ");
         return Arrays.asList(split).iterator();
     }
 }
@@ -45,10 +46,9 @@ class MyFlat implements Function<JavaRDD<String>, JavaPairRDD<String,Integer>> {
         return rdd.flatMap(line -> Arrays.asList(line.split(" ")).iterator()).mapToPair(x->new Tuple2<>(x,1));
     }
 }
-
-public class StreamTest {
+public class TransformStream {
     public static void main(String[] args) {
-        SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("StreamTest");
+        SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("TransformStream");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         //String[] jarPath = new String[]{"/home/linjiaqin/IdeaProjects/JavaSparkTest/out/artifacts/wordcount/wordcount.jar"};
@@ -58,10 +58,12 @@ public class StreamTest {
 
         sc.setLogLevel("WARN");
         JavaStreamingContext ssc = new JavaStreamingContext(sc, Duration.apply(4000));
-        JavaDStream<String> lines = ssc.socketTextStream("localhost",9999);
+        JavaDStream<String> lines = ssc.socketTextStream("localhost", 9999);
 
-        JavaDStream<String> words = lines.transform(new MyFilter());
-        JavaPairDStream<String,Integer> wordCount = words.mapToPair(x->new Tuple2<>(x,1)).reduceByKey((a,b)->a+b);
+        //JavaDStream<String> words = lines.transform(new MyFilter());
+        JavaDStream<String> words = lines.flatMap(new MyFilters());
+        //上面这两个是等价的
+        JavaPairDStream<String, Integer> wordCount = words.mapToPair(x -> new Tuple2<>(x, 1)).reduceByKey((a, b) -> a + b);
 
         wordCount.print();
         ssc.start();
