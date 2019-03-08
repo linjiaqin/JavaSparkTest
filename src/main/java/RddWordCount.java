@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class WordCount {
+public class RddWordCount {
     public static void main(String[] agrs) {
         SparkConf conf = new SparkConf().setAppName("wordcount");//spark://127.0.0.1:7077
         JavaSparkContext sc = new JavaSparkContext(conf);

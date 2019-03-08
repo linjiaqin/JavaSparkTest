@@ -6,7 +6,7 @@ import org.codehaus.janino.Java;
 
 import java.util.Arrays;
 
-public class PipeTest {
+public class RddPipe {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("PipeTest");
         JavaSparkContext sc = new JavaSparkContext(conf);

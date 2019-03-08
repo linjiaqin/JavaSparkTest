@@ -22,7 +22,7 @@ class AvgCount implements Serializable {
         return 1.0*total/num;
     }
 }
-public class Transformation {
+public class RddAggregate {
     public static void main(String[] args){
         SparkConf conf = new SparkConf().setAppName("basic transformation").setMaster("local");
         JavaSparkContext sc = new JavaSparkContext(conf);

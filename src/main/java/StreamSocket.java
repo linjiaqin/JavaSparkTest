@@ -6,7 +6,7 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
 import java.util.Arrays;
 
-public class SocketStream {
+public class StreamSocket {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[6]").setAppName("SocketStream");
         JavaSparkContext sc = new JavaSparkContext(conf);

@@ -46,9 +46,9 @@ class MyFlat implements Function<JavaRDD<String>, JavaPairRDD<String,Integer>> {
         return rdd.flatMap(line -> Arrays.asList(line.split(" ")).iterator()).mapToPair(x->new Tuple2<>(x,1));
     }
 }
-public class TransformStream {
+public class StreamTransform {
     public static void main(String[] args) {
-        SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("TransformStream");
+        SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("StreamTransform");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         //String[] jarPath = new String[]{"/home/linjiaqin/IdeaProjects/JavaSparkTest/out/artifacts/wordcount/wordcount.jar"};

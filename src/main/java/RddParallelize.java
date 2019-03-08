@@ -4,7 +4,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 
 import java.util.Arrays;
 
-public class Squar {
+public class RddParallelize {
     public static void main(String[] args){
         SparkConf conf = new SparkConf().setAppName("squar").setMaster("local");
         JavaSparkContext sc = new JavaSparkContext(conf);
