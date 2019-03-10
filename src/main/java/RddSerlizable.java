@@ -10,15 +10,7 @@ import java.util.List;
 
 
 
-class Person implements Serializable {
-    String name;
-    int grade;
 
-    public Person(String name, int grade) {
-        this.name = name;
-        this.grade = grade;
-    }
-}
 public class RddSerlizable {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("RddSerlizable");
