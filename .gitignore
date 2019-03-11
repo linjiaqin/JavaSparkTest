@@ -1,5 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
 
+metastore_db
 .idea
 *.iml
 target
@@ -7,3 +8,5 @@ out/
 src/main/resources/
 src/test/
 target/
+derby.log
+metastore_db/tmp/
