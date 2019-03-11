@@ -66,18 +66,17 @@ public class GraphCreate {
         String hdfs = "hdfs://localhost:9000";
         String input = hdfs + "/linjiaqin/GraphTest/edges.txt";
 
-        JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
-            String a[] = x.split(" ");
-            return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
-        });
+//         JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
+//             String a[] = x.split(" ");
+//             return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
+//         });
 //        Object a = 1;
 //        Graph<Object, Object> graph = Graph.fromEdgeTuples(rdd.rdd(),a);
         //不要忘记去pom中增加相应的depedency
         //sc.sc() 代表这java的sc变成spark的sc的意思
-        I know
         Graph<Object, Object> graph = GraphLoader.edgeListFile(sc.sc(),input,true,1,
                 StorageLevel.MEMORY_AND_DISK_SER(), StorageLevel.MEMORY_AND_DISK_SER());
-
+        String a = "boring";
         //邊
         EdgeRDD<Object> edge = graph.edges();
 
