@@ -66,11 +66,10 @@ public class GraphCreate {
         String hdfs = "hdfs://localhost:9000";
         String input = hdfs + "/linjiaqin/GraphTest/edges.txt";
 
-        JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
-            String a[] = x.split(" ");
-            return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
-        });
-
+//         JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
+//             String a[] = x.split(" ");
+//             return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
+//         });
 //        Object a = 1;
 //        Graph<Object, Object> graph = Graph.fromEdgeTuples(rdd.rdd(),a);
         //不要忘记去pom中增加相应的depedency
@@ -94,7 +93,7 @@ public class GraphCreate {
         //查看 點的內容
         vertices.toJavaRDD().foreach(new VoidFunction<Tuple2<Object,Object>>() {
             public void call(Tuple2<Object, Object> arg0) throws Exception {
-                System.out.println(arg0.toString()+"haha");
+                System.out.println(arg0.toString());
             }
         });
 
