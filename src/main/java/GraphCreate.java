@@ -78,7 +78,6 @@ public class GraphCreate {
         Graph<Object, Object> graph = GraphLoader.edgeListFile(sc.sc(),input,true,1,
                 StorageLevel.MEMORY_AND_DISK_SER(), StorageLevel.MEMORY_AND_DISK_SER());
 
-        String haha = "shabi"
         //邊
         EdgeRDD<Object> edge = graph.edges();
 
