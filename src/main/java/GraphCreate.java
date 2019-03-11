@@ -74,11 +74,10 @@ public class GraphCreate {
 //        Graph<Object, Object> graph = Graph.fromEdgeTuples(rdd.rdd(),a);
         //不要忘记去pom中增加相应的depedency
         //sc.sc() 代表这java的sc变成spark的sc的意思
-        String a = "hehe";
+        String a = "nishigeshabi";
         Graph<Object, Object> graph = GraphLoader.edgeListFile(sc.sc(),input,true,1,
                 StorageLevel.MEMORY_AND_DISK_SER(), StorageLevel.MEMORY_AND_DISK_SER());
 
-        String haha = "shabi"
         //邊
         EdgeRDD<Object> edge = graph.edges();
 
