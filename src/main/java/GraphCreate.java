@@ -66,10 +66,10 @@ public class GraphCreate {
         String hdfs = "hdfs://localhost:9000";
         String input = hdfs + "/linjiaqin/GraphTest/edges.txt";
 
-//        JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
-//            String a[] = x.split(" ");
-//            return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
-//        });
+        JavaRDD<Tuple2<Object,Object>> rdd = sc.textFile(input).map(x->{
+            String a[] = x.split(" ");
+            return new Tuple2<>(Long.valueOf(a[0]),Long.valueOf(a[1]));
+        });
 //        Object a = 1;
 //        Graph<Object, Object> graph = Graph.fromEdgeTuples(rdd.rdd(),a);
         //不要忘记去pom中增加相应的depedency
