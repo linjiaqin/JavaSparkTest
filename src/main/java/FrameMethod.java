@@ -7,6 +7,7 @@ import org.apache.spark.sql.catalyst.ScalaReflection;
 import org.apache.spark.sql.hive.HiveContext;
 import org.codehaus.janino.Java;
 
+import javax.xml.crypto.Data;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class FrameMethod {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("FrameMethod");
         JavaSparkContext sc = new JavaSparkContext(conf);
-        SQLContext sqc = new HiveContext(sc);
+        HiveContext sqc = new HiveContext(sc);
 
         String hdfs = "hdfs://localhost:9000";
         String txtFile = hdfs+"/linjiaqin/grade";
@@ -53,10 +54,25 @@ public class FrameMethod {
         //////////////////////////////////////////////////////////////////////////////////////
         //DataFrame的查询有两种方法，一种是将DataFrame注册成临时表，通过sql语句进行查询
         //第二种是直接在DataFrame上进行查询，是一个lazy操作
-        Dataset<Row> res = df.select("name");
-        res.show();
+        //Dataset<Row> res = df.select("name");
+        //res.show();
 
+        //////////////////////////////////////////////////////////////////////////
+        //这两种方法也可行，因为Schema和DataFrame都相当于Dataset<Row>,要求
+        //Dataset<Row> person = sqc.applySchema(personRdd, Person.class);
+        //Dataset<Row> person = sqc.createDataFrame(personRdd, Person.class);
+        //////////////////////////////////////////////////////////////////////
+        Dataset<Person> person = sqc.createDataset(personRdd.rdd(),personEncoder);
+        person.show();
+        //从hive表读取
+        SparkSession ss = SparkSession.builder().appName("spark sql exmaple")
+                .master("local[4]")
+                //.config("spark.sql.warehouse.dir", "/user/hive/warehouse")
+                .enableHiveSupport()
+                .getOrCreate();
 
+        Dataset<Row> person4 =ss.table("ljq_test.stu");
+        person4.show();
 
 
 
