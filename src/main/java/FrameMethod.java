@@ -1,3 +1,5 @@
+import ML.SMSWord;
+import RDD.Person;
 import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -36,6 +38,7 @@ public class FrameMethod {
         list.add(new Person("haha",99));
         list.add(new Person("hehe",8));
         Dataset<Row> dfPerson = sqc.createDataFrame(list,Person.class);
+        //Dataset<Row> dfPerson = sqc.createDataFrame(personRdd,Person.class);
         //首先新建一个student的Bean对象，实现序列化和toString()方法，getter,setter方法才行，idea快捷键alt+insert
         //
         //@SuppressWarnings("serial")
@@ -68,13 +71,28 @@ public class FrameMethod {
         SparkSession ss = SparkSession.builder().appName("spark sql exmaple")
                 .master("local[4]")
                 //.config("spark.sql.warehouse.dir", "/user/hive/warehouse")
-                .enableHiveSupport()
+                //.enableHiveSupport()
                 .getOrCreate();
 
         Dataset<Row> person4 =ss.table("ljq_test.stu");
         person4.show();
 
+        //String hdfs = "hdfs://localhost:9000";
+        String input2 = hdfs+"/linjiaqin/sparkml/SMS";
 
+        //dataset可以用javaRDD()
+        JavaRDD<String> dataRdd = sqc.read().textFile(input2).javaRDD();
+        JavaRDD<SMSWord> splitRdd = dataRdd.map(s-> {
+            String[] two = s.split("\t");
+            String[] words = two[1].split(" ");
+            return new SMSWord(two[0], words);
+        });
+        Dataset<Row> sms = sqc.createDataFrame(splitRdd,SMSWord.class);
+        //首先新建一个student的Bean对象，实现序列化和toString()方法，getter,setter方法才行，idea快捷键alt+insert
+        //
+        //@SuppressWarnings("serial")
+        sms.show();
+        sms.printSchema();
 
     }
 }

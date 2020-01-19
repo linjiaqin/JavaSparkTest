@@ -1,0 +1,13 @@
+package Scala.RDD;
+
+object Wordcount {
+  def main(args: Array[String]): Unit = {
+    val conf = new SparkConf().setAppName("wordcountscala").setMaster("local")
+    val sc = new SparkContext(conf)
+    val hdfs = "hdfs://localhost:9000"
+    val input = hdfs + "/linjiaqin/a.txt"
+    val count = sc.textFile(input).flatMap(x => x.split(" ")).map(x => (x,1)).
+      reduceByKey((x,y)=>x+y)
+    count.foreach(x=>println(x._1+","+x._2))
+  }
+}

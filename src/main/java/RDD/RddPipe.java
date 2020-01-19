@@ -1,14 +1,18 @@
+package RDD;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkFiles;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.codehaus.janino.Java;
 
+
 import java.util.Arrays;
 
 public class RddPipe {
     public static void main(String[] args) {
-        SparkConf conf = new SparkConf().setMaster("spark://192.168.0.100:7077").setAppName("PipeTest");
+        //SparkConf conf = new SparkConf().setMaster("spark://192.168.0.100:7077").setAppName("PipeTest");
+        SparkConf conf = new SparkConf().setMaster("local").setAppName("PipeTest");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
 

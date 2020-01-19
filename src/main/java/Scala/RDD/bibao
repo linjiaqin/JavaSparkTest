@@ -1,0 +1,16 @@
+package Scala.RDD;
+
+object bibao {
+  def main(args: Array[String]): Unit = {
+    val conf = new SparkConf().setAppName("bibao").setMaster("local")
+    val sc = new SparkContext(conf)
+
+    val rdd = sc.parallelize(List(1,2,3))
+    var counter = 0
+    rdd.foreach(x=>counter+=x)
+    println("Counter is:"+counter)
+    rdd.foreach(x=>println(x))
+    sc.stop()
+  }
+
+}

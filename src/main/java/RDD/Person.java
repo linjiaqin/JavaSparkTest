@@ -1,3 +1,4 @@
+package RDD;
 import scala.Serializable;
 
 @SuppressWarnings("serial")

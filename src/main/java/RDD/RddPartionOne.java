@@ -1,12 +1,25 @@
+package RDD;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.Function;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+class MyCount{
+    public  static int count = 0;
+    public static void add(){
+        count++;
+    }
+    public MyCount(){
+        count++;
+    }
+    public static int getcount(){
+        return count;
+    }
+}
 public class RddPartionOne {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("RddAccmulator");
@@ -27,5 +40,12 @@ public class RddPartionOne {
         },false);
         System.out.println(rddRes.count());
         System.out.println(rddRes.collect());
+
+        JavaRDD<String> rdd2 = list.map(x->{
+            MyCount a = new MyCount();
+            System.out.println(MyCount.getcount());
+            return x.toString();
+        });
+        rdd2.collect();
     }
 }
