@@ -1,16 +1,11 @@
-import ML.SMSWord;
+import ML.typical.SMSWord;
 import RDD.Person;
-import org.apache.hadoop.hive.metastore.api.Schema;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
-import org.apache.spark.sql.catalyst.ScalaReflection;
 import org.apache.spark.sql.hive.HiveContext;
-import org.codehaus.janino.Java;
 
-import javax.xml.crypto.Data;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 

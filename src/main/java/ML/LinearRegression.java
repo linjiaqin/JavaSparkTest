@@ -1,14 +1,11 @@
 package ML;
+import ML.typical.SMSWord;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.ml.feature.StringIndexer;
 import org.apache.spark.ml.feature.StringIndexerModel;
 import org.apache.spark.ml.feature.Word2Vec;
 import org.apache.spark.sql.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class LinearRegression {
     public static void main(String[] args) {

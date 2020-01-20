@@ -1,4 +1,4 @@
-package ML;
+package ML.typical;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -24,31 +24,6 @@ import org.apache.spark.sql.types.StructType;
 import java.io.Serializable;
 
 public class RandomForest {
-    public static class Data implements Serializable {
-        double[] features;
-        String label;
-
-        public Data(double[] features, String label) {
-            this.features = features;
-            this.label = label;
-        }
-
-        public double[] getFeatures() {
-            return features;
-        }
-
-        public void setFeatures(double[] features) {
-            this.features = features;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void setLabel(String label) {
-            this.label = label;
-        }
-    }
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("RandomForest");
 
@@ -66,14 +41,7 @@ public class RandomForest {
 //        data.printSchema();
 //        data.show();
         JavaRDD<String> data = spark.read().textFile(input).javaRDD();
-//        JavaRDD<Data> data1 = data.map(x->{
-//            String[] line = x.split(",");
-//            double[] fea = new double[line.length-1];
-//            for (int i = 0; i < line.length-1; i++) {
-//                fea[i] = Double.parseDouble(line[i]);
-//            }
-//            return new Data(fea, line[line.length-1]);
-//        });
+
         JavaRDD<Row> data1 = data.map(x->{
             String[] line = x.split(",");
             double[] fea = new double[line.length-1];
@@ -82,6 +50,7 @@ public class RandomForest {
             }
             Vector vec = Vectors.dense(fea);
             return RowFactory.create(vec, line[line.length-1]);
+            //return RowFactory.create(fea, line[line.length-1]);
         });
 
         StructType schema = new StructType(new StructField[]{

@@ -1,4 +1,4 @@
-package ML;
+package ML.typical;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -39,7 +39,7 @@ public class Kmean {
                 config(conf).
                 getOrCreate();
 
-        //JavaRDD<String> rdd = spark.read().textFile(input).javaRDD();
+        //JavaRDD<String> rdd = spark.read().textFile()
 
         Dataset<Row> data = spark.read()
                 .option("header",true)
@@ -52,10 +52,11 @@ public class Kmean {
 
         //这样子还是不行，因为ml要求的数据格式是vector，虽然这样子满足了features属性名
         StructType schema = new StructType(new StructField[]{
-                new StructField("features", new ArrayType(DataTypes.DoubleType, true), false, Metadata.empty())
+                new StructField("features", new ArrayType(DataTypes.IntegerType, true), false, Metadata.empty())
         });
         Dataset<Row> schemaRdd = spark.createDataFrame(data.rdd(), schema);
         schemaRdd.printSchema();
+        //schemaRdd.show();
 
         //因为字段推断为int，但是vector默认是double，所以会发生类型冲突
         StructType schema1 = new StructType(new StructField[]{
@@ -64,7 +65,7 @@ public class Kmean {
         });
         Dataset<Row> schema1Rdd = spark.createDataFrame(data.rdd(), schema1);
         schema1Rdd.printSchema();
-
+        //schema1Rdd.show();
         //这里会看到kmeans模型要求的输入属性名默认是features，也就是说它实际是封装mllib的
         //基本没有什么改变，和mllib一样要求输入是vector，所以这里得把原来的转成特征值通用
         //其实所有的这些模型默认输入是label，属性是string，features，属性是Vector。
@@ -75,6 +76,7 @@ public class Kmean {
                 .setOutputCol("features");
         Dataset<Row> traindata = assembler.transform(data);
         traindata.printSchema();
+        traindata.show();
 
         int numClusters = 3;
         int numiter = 50;

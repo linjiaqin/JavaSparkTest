@@ -1,4 +1,4 @@
-package ML;
+package ML.typical;
 
 import java.io.Serializable;
 
