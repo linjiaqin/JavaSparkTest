@@ -63,7 +63,7 @@ public class kafkaStreamWordCount {
         SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("wordcountkafka");
         SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
-        JavaStreamingContext jssc = new JavaStreamingContext(jsc, Durations.seconds(5000));
+        JavaStreamingContext jssc = new JavaStreamingContext(jsc, Durations.seconds(5));
 
         Map<String, Object> kafkaParams = initKafka();
         Collection<String> topics = Arrays.asList("topicA","topicB");
