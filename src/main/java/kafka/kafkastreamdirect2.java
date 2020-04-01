@@ -1,10 +1,12 @@
 package kafka;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -18,6 +20,8 @@ import scala.Tuple2;
 
 import java.util.*;
 
+import static kafka.kafkaStreamWordCount.windowfunction1;
+
 public class kafkastreamdirect2 {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf();
@@ -30,6 +34,9 @@ public class kafkastreamdirect2 {
         SparkSession spark = SparkSession.builder().config(conf).getOrCreate();
         JavaSparkContext javaSparkContext = new JavaSparkContext(spark.sparkContext());
         JavaStreamingContext jssc = new JavaStreamingContext(javaSparkContext, Durations.seconds(10));
+
+        String hdfs = "hdfs://localhost:9000";
+        jssc.checkpoint(hdfs+"/home/linjiaqin/sparkstream");
 
         Map<String, Object> kafkaParams = new HashMap<>();
         kafkaParams.put("bootstrap.servers", "localhost:9093,localhost:9094");
@@ -54,6 +61,8 @@ public class kafkastreamdirect2 {
 //                            ConsumerStrategies.<String, String>Subscribe(topics.get(i), kafkaParams)
 //                    ));
 //        }
+
+
         Collection<String> topics = Arrays.asList("topicA","topicB");
         JavaInputDStream<ConsumerRecord<String, String>> stream =
                 KafkaUtils.createDirectStream(
@@ -61,8 +70,27 @@ public class kafkastreamdirect2 {
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
                 );
-        JavaPairDStream<String,String> stream1 = stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
-        stream1.print();
+        JavaPairDStream<String, String> keywords = stream.mapToPair(record->{
+            return new Tuple2<>(StringUtils.trimToEmpty(record.value()),StringUtils.trimToEmpty(record.value()));
+        });
+
+        JavaPairDStream<String,Long> windowstream = keywords.map(value -> value._2())
+                .filter((word)->{
+                    if ((StringUtils.isBlank(word))) return false;
+                    return true;
+                })
+                .countByValueAndWindow(new Duration(1*20*1000), new Duration(1*20*1000));
+        //windowstream.foreachRDD(recoreds->windowfunction2(recoreds));
+        windowstream.foreachRDD(records->windowfunction1(records.sortByKey(false).take(3)));
+//        Collection<String> topics = Arrays.asList("topicA","topicB");
+//        JavaInputDStream<ConsumerRecord<String, String>> stream =
+//                KafkaUtils.createDirectStream(
+//                        jssc,
+//                        LocationStrategies.PreferConsistent(),
+//                        ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
+//                );
+//        JavaPairDStream<String,String> stream1 = stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
+//        stream1.print();
 
         // Start the computation
         jssc.start();

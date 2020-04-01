@@ -12,6 +12,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -33,6 +34,8 @@ public class kafkaStreamWordCount {
         kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        kafkaParams.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"latest");
+        kafkaParams.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,"false");
         return kafkaParams;
     }
 
@@ -41,7 +44,8 @@ public class kafkaStreamWordCount {
         windowfunction1(wordlist);
     }
     public static void windowfunction1(List<Tuple2<String,Long>> wordlist){
-        if (CollectionUtils.isEmpty(wordlist)) {
+        //System.out.println("?？?？?？");
+        if (CollectionUtils.isNotEmpty(wordlist)) {
             List<Tuple2<String,Long>> sortList = new ArrayList<Tuple2<String,Long>>(wordlist);
             sortList.sort(new Comparator<Tuple2<String, Long>>() {
                 @Override
@@ -64,6 +68,8 @@ public class kafkaStreamWordCount {
         SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
         JavaStreamingContext jssc = new JavaStreamingContext(jsc, Durations.seconds(5));
+        String hdfs = "hdfs://localhost:9000";
+        jssc.checkpoint(hdfs+"/home/linjiaqin/sparkstream");
 
         Map<String, Object> kafkaParams = initKafka();
         Collection<String> topics = Arrays.asList("topicA","topicB");
@@ -73,17 +79,22 @@ public class kafkaStreamWordCount {
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
                 );
+        //JavaDStream<ConsumerRecord<String, String>> keywords1 = stream.cache();
         JavaPairDStream<String, String> keywords = stream.mapToPair(record->{
             return new Tuple2<>(StringUtils.trimToEmpty(record.value()),StringUtils.trimToEmpty(record.value()));
         });
+        //keywords.print();
 
         JavaPairDStream<String,Long> windowstream = keywords.map(value -> value._2())
                 .filter((word)->{
                     if ((StringUtils.isBlank(word))) return false;
+                    //System.out.println("thisis:"+word);
                     return true;
                 })
                 .countByValueAndWindow(new Duration(1*20*1000), new Duration(1*20*1000));
-        windowstream.foreachRDD(recoreds->windowfunction2(recoreds));
+        //这里之所以要cache
+        //windowstream.foreachRDD(recoreds->windowfunction2(recoreds));
+        windowstream.cache().foreachRDD(records->windowfunction1(records.sortByKey(false).take(3)));
 
         jssc.start();
         try {
