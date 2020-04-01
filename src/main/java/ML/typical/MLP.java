@@ -18,6 +18,8 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 
+import java.io.IOException;
+
 public class MLP {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf().setMaster("local[4]").setAppName("ML.LinearRegression");
@@ -104,6 +106,16 @@ public class MLP {
         Pipeline pipeline = new Pipeline();
         pipeline.setStages(new PipelineStage[]{stringIndexer,word2Vec,mlp,indexToString});
         PipelineModel model = pipeline.fit(trainData);
+        try {
+            pipeline.save(hdfs+"/home/linjiaqin/pipeline");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            model.save(hdfs+"/home/linjiaqin/model");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Dataset<Row>predicts = model.transform(testData);
         predicts.show();
         predicts.printSchema();
@@ -114,6 +126,8 @@ public class MLP {
         evaluator.setLabelCol("indexlabel").setPredictionCol("predictindexlabel");
         double acc = evaluator.evaluate(predicts);
         System.out.println(String.format("Accuracy is %2.4f",acc));
+
+
 
         final LongAccumulator accumulator = spark.sparkContext().longAccumulator();
         JavaPairRDD<Long, Row> predictRdd = predicts.select("label","predictlabel").javaRDD().zipWithUniqueId().mapToPair(x->{
