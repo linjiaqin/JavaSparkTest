@@ -70,27 +70,8 @@ public class kafkastreamdirect2 {
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
                 );
-        JavaPairDStream<String, String> keywords = stream.mapToPair(record->{
-            return new Tuple2<>(StringUtils.trimToEmpty(record.value()),StringUtils.trimToEmpty(record.value()));
-        });
-
-        JavaPairDStream<String,Long> windowstream = keywords.map(value -> value._2())
-                .filter((word)->{
-                    if ((StringUtils.isBlank(word))) return false;
-                    return true;
-                })
-                .countByValueAndWindow(new Duration(1*20*1000), new Duration(1*20*1000));
-        //windowstream.foreachRDD(recoreds->windowfunction2(recoreds));
-        windowstream.foreachRDD(records->windowfunction1(records.sortByKey(false).take(3)));
-//        Collection<String> topics = Arrays.asList("topicA","topicB");
-//        JavaInputDStream<ConsumerRecord<String, String>> stream =
-//                KafkaUtils.createDirectStream(
-//                        jssc,
-//                        LocationStrategies.PreferConsistent(),
-//                        ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
-//                );
-//        JavaPairDStream<String,String> stream1 = stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
-//        stream1.print();
+        JavaPairDStream<String,String> stream1 = stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
+        stream1.print();
 
         // Start the computation
         jssc.start();

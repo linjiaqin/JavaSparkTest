@@ -9,23 +9,24 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
-import scala.Tuple1;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import scala.Tuple2;
-import scala.tools.scalap.scalax.util.StringUtil;
 
+import java.sql.Connection;
 import java.util.*;
 
-public class kafkaStreamWordCount {
+public class kafkaStreamWordCountRedis {
     public static Map<String, Object> initKafka() {
         String brokers = "localhost:9093,localhost:9094";
         String groupId = "testGroup";
@@ -61,6 +62,7 @@ public class kafkaStreamWordCount {
                 System.out.println(e._1+":"+e._2);
             }
             System.out.println("==================================");
+
         }
     }
     public static void main(String[] args) {
@@ -69,32 +71,49 @@ public class kafkaStreamWordCount {
         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
         JavaStreamingContext jssc = new JavaStreamingContext(jsc, Durations.seconds(5));
         String hdfs = "hdfs://localhost:9000";
-        jssc.checkpoint(hdfs+"/home/linjiaqin/sparkstream");
+        jssc.checkpoint(hdfs + "/home/linjiaqin/sparkstream");
 
         Map<String, Object> kafkaParams = initKafka();
-        Collection<String> topics = Arrays.asList("topicA","topicB");
+        Collection<String> topics = Arrays.asList("topicA", "topicB");
         JavaInputDStream<ConsumerRecord<String, String>> stream =
                 KafkaUtils.createDirectStream(
                         jssc,
                         LocationStrategies.PreferConsistent(),
-                        ConsumerStrategies.<String,String>Subscribe(topics, kafkaParams)
+                        ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams)
                 );
         //JavaDStream<ConsumerRecord<String, String>> keywords1 = stream.cache();
-        JavaPairDStream<String, String> keywords = stream.mapToPair(record->{
-            return new Tuple2<>(StringUtils.trimToEmpty(record.value()),StringUtils.trimToEmpty(record.value()));
+        JavaPairDStream<String, String> keywords = stream.mapToPair(record -> {
+            return new Tuple2<>(StringUtils.trimToEmpty(record.value()), StringUtils.trimToEmpty(record.value()));
         });
         //keywords.print();
 
-        JavaPairDStream<String,Long> windowstream = keywords.map(value -> value._2())
-                .filter((word)->{
+        JavaPairDStream<String, Long> windowstream = keywords.map(value -> value._2())
+                .filter((word) -> {
                     if ((StringUtils.isBlank(word))) return false;
                     //System.out.println("thisis:"+word);
                     return true;
                 })
-                .countByValueAndWindow(new Duration(1*20*1000), new Duration(1*20*1000));
+                .countByValueAndWindow(new Duration(1 * 20 * 1000), new Duration(1 * 20 * 1000));
         //这里之所以要cache,试音foreach可能会重复使用rdd，这里是个action会导致重复从kafka读取数据
         //windowstream.foreachRDD(recoreds->windowfunction2(recoreds));
-        windowstream.cache().foreachRDD(records->windowfunction1(records.sortByKey(false).take(3)));
+        windowstream.cache().foreachRDD(rdd -> {
+            //foreachPartition这个方法好像和kafka的topic的分区个数有关系，如果你topic有两个分区，则这个方法会执行两次
+            //因为有两个partition
+            rdd.foreachPartition(new VoidFunction<Iterator<Tuple2<String, Long>>>() {
+                @Override
+                public void call(Iterator<Tuple2<String, Long>> tuple2Iterator) throws Exception {
+                    RedisPoolUtil redisPoolUtil = RedisPoolUtil.getInstance();
+                    Jedis jedis = RedisPoolUtil.getRdis();
+                    Tuple2<String, Long> tmp = null;
+                    //这里是迭代遍历这个分区的所有元素
+                    while (tuple2Iterator.hasNext()){
+                        tmp = tuple2Iterator.next();
+                        jedis.set(tmp._1, tmp._2.toString());
+                    }
+                    redisPoolUtil.closeRedis(jedis);
+                }
+            });
+        });
 
         jssc.start();
         try {
@@ -103,6 +122,5 @@ public class kafkaStreamWordCount {
             e.printStackTrace();
             jssc.close();
         }
-
     }
 }
